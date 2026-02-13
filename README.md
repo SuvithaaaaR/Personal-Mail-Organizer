@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Personal Mail Organizer – Chrome Extension 🤖
 
 A Chrome Extension that automatically organises your Gmail inbox using OpenAI GPT for intelligent email classification and labeling.
@@ -169,3 +170,6 @@ All settings are available in **⚙️ Settings** (Options page):
 ## License
 
 MIT
+=======
+![Repository Stats](https://github-repo-readme-stats.vercel.app/api/?username=suvithaaaar&repo=personal-mail-organizer&theme=catppuccin)
+>>>>>>> 349ff4b6f0bb236d630043f715ffec07d827c17e
