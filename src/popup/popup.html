@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mail Organizer</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <header class="header">
+        <h1>📬 Mail Organizer</h1>
+        <span class="badge" id="statusBadge">Idle</span>
+      </header>
+
+      <!-- Auth Section -->
+      <section id="authSection" class="section">
+        <p class="muted">Sign in with your Google account to get started.</p>
+        <button id="btnSignIn" class="btn btn-primary btn-block">
+          Sign in with Google
+        </button>
+      </section>
+
+      <!-- Main Section (shown after auth) -->
+      <section id="mainSection" class="section hidden">
+        <div class="user-info">
+          <span id="userEmail" class="muted"></span>
+          <button id="btnSignOut" class="btn btn-sm btn-outline">
+            Sign out
+          </button>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="actions">
+          <button id="btnOrganize" class="btn btn-primary btn-block">
+            🚀 Organize Inbox Now
+          </button>
+
+          <div class="toggle-row">
+            <label for="autoOrganizeToggle">Auto-organize</label>
+            <input type="checkbox" id="autoOrganizeToggle" />
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div id="progressArea" class="progress-area hidden">
+          <div class="progress-bar">
+            <div
+              id="progressFill"
+              class="progress-fill"
+              style="width: 0%"
+            ></div>
+          </div>
+          <p id="progressText" class="muted">Processing...</p>
+        </div>
+
+        <!-- Stats -->
+        <div id="statsArea" class="stats hidden">
+          <h3>Last Run Results</h3>
+          <div class="stat-grid">
+            <div class="stat-item">
+              <span class="stat-value" id="statProcessed">0</span>
+              <span class="stat-label">Processed</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="statCategorized">0</span>
+              <span class="stat-label">Categorized</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="statSkipped">0</span>
+              <span class="stat-label">Skipped</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="statFailed">0</span>
+              <span class="stat-label">Failed</span>
+            </div>
+          </div>
+          <div id="categoryBreakdown" class="category-breakdown"></div>
+        </div>
+
+        <!-- Log preview -->
+        <details class="log-details">
+          <summary>Activity Log</summary>
+          <div id="logArea" class="log-area"></div>
+        </details>
+      </section>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <a href="#" id="btnOptions">⚙️ Settings</a>
+      </footer>
+    </div>
+
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>

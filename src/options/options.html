@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mail Organizer – Settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>⚙️ Mail Organizer Settings</h1>
+
+      <!-- AI Provider Section -->
+      <section class="card">
+        <h2>🤖 AI Configuration</h2>
+
+        <div class="field">
+          <label for="aiProvider">AI Provider</label>
+          <select id="aiProvider">
+            <option value="groq">Groq (FREE - 30 req/min) ⭐</option>
+            <option value="gemini">Google Gemini (FREE - 15 req/min)</option>
+            <option value="openai">OpenAI (Paid)</option>
+          </select>
+          <small
+            >Groq recommended - faster processing, higher rate limits!</small
+          >
+        </div>
+
+        <div class="field">
+          <label for="aiApiKey">API Key</label>
+          <input type="password" id="aiApiKey" placeholder="Your API key..." />
+          <small id="apiKeyHelp">
+            Get FREE key at
+            <a href="https://console.groq.com/keys" target="_blank"
+              >console.groq.com</a
+            >
+          </small>
+        </div>
+
+        <div class="field">
+          <label for="aiModel">Model</label>
+          <select id="aiModel">
+            <option value="llama-3.1-8b-instant">
+              llama-3.1-8b (Groq FREE) ⭐
+            </option>
+            <option value="gemini-2.0-flash">
+              gemini-2.0-flash (Gemini FREE)
+            </option>
+            <option value="gemini-1.5-pro">gemini-1.5-pro (Gemini FREE)</option>
+            <option value="gpt-4o-mini">gpt-4o-mini (OpenAI Paid)</option>
+            <option value="gpt-4o">gpt-4o (OpenAI Paid)</option>
+          </select>
+        </div>
+
+        <div class="field row">
+          <label for="useAiClassification">Enable AI Classification</label>
+          <input type="checkbox" id="useAiClassification" />
+        </div>
+      </section>
+
+      <!-- Classification Section -->
+      <section class="card">
+        <h2>🎯 Classification</h2>
+
+        <div class="field">
+          <label for="aiConfidenceThreshold">AI Confidence Threshold</label>
+          <input
+            type="range"
+            id="aiConfidenceThreshold"
+            min="0"
+            max="1"
+            step="0.05"
+          />
+          <span id="thresholdValue">0.70</span>
+        </div>
+
+        <div class="field">
+          <label for="minConfidenceForAutoLabel"
+            >Min Confidence for Auto-Label</label
+          >
+          <input
+            type="range"
+            id="minConfidenceForAutoLabel"
+            min="0"
+            max="1"
+            step="0.05"
+          />
+          <span id="autoLabelValue">0.85</span>
+        </div>
+
+        <div class="field row">
+          <label for="fallbackToKeywords">Fallback to Keywords</label>
+          <input type="checkbox" id="fallbackToKeywords" />
+        </div>
+      </section>
+
+      <!-- Email Processing Section -->
+      <section class="card">
+        <h2>📥 Email Processing</h2>
+
+        <div class="field">
+          <label for="maxEmailsToProcess">Max Emails per Run</label>
+          <input
+            type="number"
+            id="maxEmailsToProcess"
+            min="1"
+            max="500"
+            step="5"
+          />
+        </div>
+
+        <div class="field row">
+          <label for="processOnlyUnread">Process Only Unread</label>
+          <input type="checkbox" id="processOnlyUnread" />
+        </div>
+
+        <div class="field row">
+          <label for="keepInInbox">Keep Emails in Inbox After Labeling</label>
+          <input type="checkbox" id="keepInInbox" />
+        </div>
+      </section>
+
+      <!-- Auto-organize Section -->
+      <section class="card">
+        <h2>🔄 Auto-Organize</h2>
+
+        <div class="field row">
+          <label for="autoOrganizeEnabled">Enable Auto-Organize</label>
+          <input type="checkbox" id="autoOrganizeEnabled" />
+        </div>
+
+        <div class="field">
+          <label for="autoOrganizeIntervalMinutes">Interval (minutes)</label>
+          <input
+            type="number"
+            id="autoOrganizeIntervalMinutes"
+            min="5"
+            max="1440"
+            step="5"
+          />
+        </div>
+      </section>
+
+      <!-- Rate Limiting Section -->
+      <section class="card">
+        <h2>⏱️ Rate Limiting</h2>
+
+        <div class="field">
+          <label for="batchSize">Batch Size</label>
+          <input type="number" id="batchSize" min="1" max="100" />
+        </div>
+
+        <div class="field">
+          <label for="delayBetweenBatchesMs">Delay Between Batches (ms)</label>
+          <input
+            type="number"
+            id="delayBetweenBatchesMs"
+            min="0"
+            max="10000"
+            step="100"
+          />
+        </div>
+      </section>
+
+      <!-- Keywords Section -->
+      <section class="card">
+        <h2>🏷️ Email Categories &amp; Keywords</h2>
+        <p class="muted">
+          Edit the JSON below to customise categories and their keyword
+          triggers.
+        </p>
+        <textarea id="keywordsEditor" rows="16" spellcheck="false"></textarea>
+        <div id="keywordsError" class="error-text hidden"></div>
+      </section>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button id="btnSave" class="btn btn-primary">💾 Save Settings</button>
+        <button id="btnReset" class="btn btn-outline">
+          🔄 Reset to Defaults
+        </button>
+        <span id="saveStatus" class="save-status hidden">✅ Saved!</span>
+      </div>
+    </div>
+
+    <script src="options.js" type="module"></script>
+  </body>
+</html>

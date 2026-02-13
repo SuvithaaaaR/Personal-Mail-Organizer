@@ -1,0 +1,21 @@
+{
+  "name": "personal-mail-organizer",
+  "version": "1.0.0",
+  "description": "AI-powered Chrome extension to organize your Gmail inbox using OpenAI GPT.",
+  "private": true,
+  "scripts": {
+    "lint": "eslint src/",
+    "build": "echo 'No build step required — load as unpacked extension'"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0"
+  },
+  "keywords": [
+    "chrome-extension",
+    "gmail",
+    "email-organizer",
+    "openai",
+    "ai"
+  ],
+  "license": "MIT"
+}

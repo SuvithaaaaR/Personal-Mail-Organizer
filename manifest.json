@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Personal Mail Organizer",
+  "version": "1.0.0",
+  "description": "AI-powered Gmail inbox organizer using OpenAI GPT for intelligent email classification and labeling.",
+  "permissions": ["identity", "storage", "alarms", "notifications"],
+  "host_permissions": [
+    "https://www.googleapis.com/*",
+    "https://api.openai.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.groq.com/*"
+  ],
+  "oauth2": {
+    "client_id": "813715697281-bnpr1qsbpemh1h7fboq41cd7luhgvtj9.apps.googleusercontent.com",
+    "scopes": ["https://www.googleapis.com/auth/gmail.modify"]
+  },
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_page": "src/options/options.html",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

@@ -1,5 +1,42 @@
-{
-  "Meetings": [
+/**
+ * Default keyword categories for fallback classification.
+ * These are used when AI classification is disabled or has low confidence.
+ * Users can customise these via the Options page (stored in chrome.storage.local).
+ */
+
+export const DEFAULT_KEYWORDS = {
+  Leetcode: [
+    "leetcode",
+    "daily challenge",
+    "coding challenge",
+    "weekly contest",
+    "biweekly contest",
+    "leetcode premium",
+    "problem of the day",
+  ],
+  IEEE: [
+    "ieee",
+    "ieee xplore",
+    "ieee spectrum",
+    "ieee conference",
+    "ieee paper",
+    "ieee transactions",
+    "ieee access",
+    "ieee membership",
+  ],
+  NPTEL: [
+    "nptel",
+    "swayam",
+    "iit madras",
+    "iit bombay",
+    "iit kharagpur",
+    "iit kanpur",
+    "iit delhi",
+    "week content",
+    "assignment",
+    "noc",
+  ],
+  Meetings: [
     "meeting",
     "zoom",
     "google meet",
@@ -16,7 +53,7 @@
     "one-on-one",
     "discussion",
     "video call",
-    "call scheduled"
+    "call scheduled",
   ],
   "Job Alerts": [
     "job",
@@ -34,9 +71,9 @@
     "employment",
     "job opportunity",
     "career opportunity",
-    "now hiring"
+    "now hiring",
   ],
-  "Internships": [
+  Internships: [
     "internship",
     "trainee",
     "intern",
@@ -48,9 +85,9 @@
     "apprentice",
     "internship opportunity",
     "intern position",
-    "seeking interns"
+    "seeking interns",
   ],
-  "Exams": [
+  Exams: [
     "exam",
     "test",
     "assessment",
@@ -66,9 +103,9 @@
     "coursework",
     "assignment due",
     "deadline",
-    "submission"
+    "submission",
   ],
-  "Promotions": [
+  Promotions: [
     "sale",
     "discount",
     "offer",
@@ -82,7 +119,7 @@
     "free shipping",
     "save now",
     "exclusive offer",
-    "flash sale"
+    "flash sale",
   ],
   "Social Media": [
     "facebook",
@@ -96,9 +133,9 @@
     "commented on",
     "followed you",
     "connection request",
-    "friend request"
+    "friend request",
   ],
-  "Newsletters": [
+  Newsletters: [
     "newsletter",
     "digest",
     "weekly roundup",
@@ -107,7 +144,7 @@
     "unsubscribe",
     "mailing list",
     "bulletin",
-    "press release"
+    "press release",
   ],
   "Bills & Finance": [
     "invoice",
@@ -121,6 +158,29 @@
     "balance",
     "payment reminder",
     "subscription renewal",
-    "charge"
-  ]
+    "charge",
+  ],
+};
+
+/**
+ * Load keywords from chrome.storage.local, falling back to defaults.
+ * @returns {Promise<object>}
+ */
+export async function loadKeywords() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get({ keywords: DEFAULT_KEYWORDS }, (items) => {
+      resolve(items.keywords);
+    });
+  });
+}
+
+/**
+ * Save keywords to chrome.storage.local.
+ * @param {object} keywords
+ * @returns {Promise<void>}
+ */
+export async function saveKeywords(keywords) {
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ keywords }, resolve);
+  });
 }
