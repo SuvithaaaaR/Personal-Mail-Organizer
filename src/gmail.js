@@ -12,10 +12,13 @@ const GMAIL_BASE = "https://www.googleapis.com/gmail/v1/users/me";
  */
 export async function getAuthToken(interactive = false) {
   return new Promise((resolve, reject) => {
+    console.log("Requesting auth token, interactive:", interactive);
     chrome.identity.getAuthToken({ interactive }, (token) => {
       if (chrome.runtime.lastError) {
+        console.error("Auth token error:", chrome.runtime.lastError);
         reject(new Error(chrome.runtime.lastError.message));
       } else {
+        console.log("Auth token received successfully");
         resolve(token);
       }
     });

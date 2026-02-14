@@ -72,11 +72,16 @@ async function getAuthStatus() {
 
 async function signIn() {
   try {
+    console.log("Starting sign-in process...");
     const token = await getAuthToken(true);
+    console.log("Token received:", token ? "✓" : "✗");
     cachedToken = token;
+    console.log("Fetching user email...");
     const email = await getUserEmail(token);
+    console.log("Sign-in successful:", email);
     return { success: true, email };
   } catch (err) {
+    console.error("Sign-in error:", err);
     return { success: false, error: err.message };
   }
 }
@@ -296,8 +301,4 @@ function broadcast(msg) {
   chrome.runtime.sendMessage(msg).catch(() => {
     // popup may not be open — ignore
   });
-}
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }

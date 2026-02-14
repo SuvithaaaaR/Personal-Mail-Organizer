@@ -78,14 +78,29 @@ btnSignIn.addEventListener("click", async () => {
   btnSignIn.disabled = true;
   btnSignIn.textContent = "Signing in…";
   try {
-    const { success, email } = await sendMessage({ action: "signIn" });
+    const response = await sendMessage({ action: "signIn" });
+
+    // Check for error from message handler
+    if (response.error) {
+      addLog("Sign-in failed: " + response.error, "error");
+      alert("Sign-in failed: " + response.error);
+      return;
+    }
+
+    const { success, email, error } = response;
     if (success) {
       authSection.classList.add("hidden");
       mainSection.classList.remove("hidden");
       userEmail.textContent = email || "Signed in";
+      addLog("Successfully signed in as " + email, "success");
+    } else {
+      const errorMsg = error || "Unknown error occurred";
+      addLog("Sign-in failed: " + errorMsg, "error");
+      alert("Sign-in failed: " + errorMsg);
     }
   } catch (err) {
     addLog("Sign-in failed: " + err.message, "error");
+    alert("Sign-in failed: " + err.message);
   } finally {
     btnSignIn.disabled = false;
     btnSignIn.textContent = "Sign in with Google";
