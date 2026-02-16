@@ -1012,6 +1012,64 @@ export async function classifyEmailLocally(emailData) {
   console.log(`[LocalML] Domain: ${domain}`);
 
   // ──────────────────────────────────────────────────────────
+  // STEP 0: CHECK LEARNED PATTERNS FIRST (User corrections have priority!)
+  // ──────────────────────────────────────────────────────────
+  const learned = await chrome.storage.local.get({
+    learnedDomains: {},
+    learnedSenderNames: {},
+    learnedSubjectPhrases: {},
+  });
+
+  // Check learned domains first
+  if (domain && learned.learnedDomains[domain]) {
+    const category = learned.learnedDomains[domain];
+    console.log(`[LocalML] ✓ LEARNED DOMAIN: "${domain}" → ${category}`);
+    return {
+      category,
+      confidence: 0.98,
+      reasoning: `Learned: ${domain}`,
+      alternativeCategories: [],
+      scores: { [category]: 100 },
+    };
+  }
+
+  // Check learned sender names
+  if (senderName) {
+    for (const [name, category] of Object.entries(learned.learnedSenderNames)) {
+      if (senderName.includes(name)) {
+        console.log(
+          `[LocalML] ✓ LEARNED SENDER: "${senderName}" → ${category}`,
+        );
+        return {
+          category,
+          confidence: 0.95,
+          reasoning: `Learned sender: ${name}`,
+          alternativeCategories: [],
+          scores: { [category]: 100 },
+        };
+      }
+    }
+  }
+
+  // Check learned subject phrases
+  for (const [category, phrases] of Object.entries(
+    learned.learnedSubjectPhrases,
+  )) {
+    for (const phrase of phrases) {
+      if (subjectText.includes(phrase)) {
+        console.log(`[LocalML] ✓ LEARNED PHRASE: "${phrase}" → ${category}`);
+        return {
+          category,
+          confidence: 0.9,
+          reasoning: `Learned phrase: "${phrase}"`,
+          alternativeCategories: [],
+          scores: { [category]: 100 },
+        };
+      }
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────
   // STEP 1: DOMAIN MATCHING (95% confidence) - Most Reliable
   // ──────────────────────────────────────────────────────────
   if (domain) {
@@ -1192,24 +1250,218 @@ export async function classifyEmailLocally(emailData) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// LEARNING FROM USER CORRECTIONS
+// LEARNING FROM USER CORRECTIONS - Smart Pattern Extraction
 // ══════════════════════════════════════════════════════════════════════════════
 
+/**
+ * Learn from user correction - extracts and stores patterns for future use
+ */
 export async function learnFromCorrection(emailData, correctCategory) {
-  const domain = extractDomain(emailData.sender);
+  const { subject, body, sender, snippet } = emailData;
+  const domain = extractDomain(sender);
+  const senderName = extractSenderName(sender);
 
+  // Load existing learned data
+  const stored = await chrome.storage.local.get({
+    learnedDomains: {},
+    learnedSenderNames: {},
+    learnedSubjectPhrases: {},
+  });
+
+  const learnedDomains = stored.learnedDomains;
+  const learnedSenderNames = stored.learnedSenderNames;
+  const learnedSubjectPhrases = stored.learnedSubjectPhrases;
+
+  let learned = [];
+
+  // 1. Learn domain → category mapping
   if (domain) {
-    const stored = (await chrome.storage.local.get("learnedDomains")) || {};
-    const learnedDomains = stored.learnedDomains || {};
     learnedDomains[domain] = correctCategory;
-    await chrome.storage.local.set({ learnedDomains });
-    console.log(`[LocalML] Learned: ${domain} → ${correctCategory}`);
+    learned.push(`domain: ${domain}`);
   }
+
+  // 2. Learn sender name → category mapping
+  if (senderName && senderName.length > 3) {
+    // Extract meaningful sender name (remove common words)
+    const cleanName = senderName
+      .replace(/noreply|no-reply|notifications|alerts|mail|email/gi, "")
+      .trim();
+    if (cleanName.length > 3) {
+      learnedSenderNames[cleanName] = correctCategory;
+      learned.push(`sender: ${cleanName}`);
+    }
+  }
+
+  // 3. Extract unique phrases from subject (3+ words not common)
+  if (subject) {
+    const subjectLower = subject.toLowerCase();
+    const stopWords = [
+      "the",
+      "a",
+      "an",
+      "is",
+      "are",
+      "was",
+      "were",
+      "be",
+      "been",
+      "being",
+      "have",
+      "has",
+      "had",
+      "do",
+      "does",
+      "did",
+      "will",
+      "would",
+      "could",
+      "should",
+      "may",
+      "might",
+      "must",
+      "shall",
+      "can",
+      "need",
+      "to",
+      "of",
+      "in",
+      "for",
+      "on",
+      "with",
+      "at",
+      "by",
+      "from",
+      "as",
+      "into",
+      "through",
+      "during",
+      "before",
+      "after",
+      "above",
+      "below",
+      "between",
+      "under",
+      "again",
+      "further",
+      "then",
+      "once",
+      "here",
+      "there",
+      "when",
+      "where",
+      "why",
+      "how",
+      "all",
+      "each",
+      "few",
+      "more",
+      "most",
+      "other",
+      "some",
+      "such",
+      "no",
+      "nor",
+      "not",
+      "only",
+      "own",
+      "same",
+      "so",
+      "than",
+      "too",
+      "very",
+      "just",
+      "and",
+      "but",
+      "if",
+      "or",
+      "because",
+      "until",
+      "while",
+      "your",
+      "you",
+      "we",
+      "our",
+      "their",
+      "this",
+      "that",
+      "these",
+      "those",
+      "it",
+      "its",
+      "hi",
+      "hello",
+      "dear",
+      "re",
+      "fwd",
+    ];
+
+    // Get meaningful words from subject
+    const words = subjectLower
+      .replace(/[^a-z0-9\s]/g, " ")
+      .split(/\s+/)
+      .filter((w) => w.length > 3 && !stopWords.includes(w));
+
+    // Store first 2-3 meaningful words as a phrase
+    if (words.length >= 2) {
+      const phrase = words.slice(0, 3).join(" ");
+      if (!learnedSubjectPhrases[correctCategory]) {
+        learnedSubjectPhrases[correctCategory] = [];
+      }
+      if (!learnedSubjectPhrases[correctCategory].includes(phrase)) {
+        learnedSubjectPhrases[correctCategory].push(phrase);
+        learned.push(`phrase: "${phrase}"`);
+      }
+    }
+  }
+
+  // Save all learned patterns
+  await chrome.storage.local.set({
+    learnedDomains,
+    learnedSenderNames,
+    learnedSubjectPhrases,
+  });
+
+  console.log(
+    `[LocalML] ✓ Learned for "${correctCategory}": ${learned.join(", ")}`,
+  );
+
+  return { success: true, learned };
+}
+
+/**
+ * Load all learned patterns
+ */
+async function loadLearnedPatterns() {
+  return await chrome.storage.local.get({
+    learnedDomains: {},
+    learnedSenderNames: {},
+    learnedSubjectPhrases: {},
+  });
+}
+
+/**
+ * Clear all learned patterns (reset learning)
+ */
+export async function clearLearnedPatterns() {
+  await chrome.storage.local.remove([
+    "learnedDomains",
+    "learnedSenderNames",
+    "learnedSubjectPhrases",
+  ]);
+  console.log("[LocalML] Cleared all learned patterns");
+  return { success: true };
+}
+
+/**
+ * Get all learned patterns for display
+ */
+export async function getLearnedPatterns() {
+  return await loadLearnedPatterns();
 }
 
 export async function getClassifierStats() {
   const keywords = await loadKeywords();
-  const stored = (await chrome.storage.local.get("learnedDomains")) || {};
+  const learned = await loadLearnedPatterns();
 
   return {
     totalCategories: Object.keys(EMAIL_PATTERNS).length,
@@ -1219,6 +1471,9 @@ export async function getClassifierStats() {
       0,
     ),
     customKeywords: Object.values(keywords).flat().length,
-    learnedDomains: Object.keys(stored.learnedDomains || {}).length,
+    learnedDomains: Object.keys(learned.learnedDomains || {}).length,
+    learnedSenderNames: Object.keys(learned.learnedSenderNames || {}).length,
+    learnedPhrases: Object.values(learned.learnedSubjectPhrases || {}).flat()
+      .length,
   };
 }

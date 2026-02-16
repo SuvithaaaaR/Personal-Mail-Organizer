@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mail Organizer</title>
+    <link rel="stylesheet" href="sidepanel.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <header class="header">
+        <div class="logo">
+          <button id="btnBack" class="btn-back hidden">&larr;</button>
+          <h1 id="headerTitle">Mail Organizer</h1>
+        </div>
+      </header>
+
+      <!-- Auth Section -->
+      <section id="authSection" class="section">
+        <div class="welcome-card">
+          <h2>Hi,</h2>
+          <p>How can I organize your inbox today?</p>
+        </div>
+        <button id="btnSignIn" class="btn btn-primary btn-block">
+          Sign in with Google
+        </button>
+      </section>
+
+      <!-- Main Section (shown after auth) -->
+      <section id="mainSection" class="section hidden">
+        <div class="user-info">
+          <span id="userEmail" class="muted"></span>
+          <button id="btnSignOut" class="btn btn-sm btn-outline">
+            Sign out
+          </button>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="action-grid">
+          <button id="btnOrganize" class="action-card">
+            <span class="action-label">Organize Now</span>
+          </button>
+
+          <button id="btnRestore" class="action-card">
+            <span class="action-label">Restore Inbox</span>
+          </button>
+
+          <button id="btnSettings" class="action-card">
+            <span class="action-label">Settings</span>
+          </button>
+
+          <div class="action-card toggle-card">
+            <label class="toggle-label">
+              <span>Auto</span>
+              <input type="checkbox" id="autoOrganizeToggle" />
+            </label>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div id="progressArea" class="progress-area hidden">
+          <div class="progress-bar">
+            <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+          </div>
+          <p id="progressText" class="muted">Processing...</p>
+        </div>
+
+        <!-- Stats -->
+        <div id="statsArea" class="stats hidden">
+          <h3>Last Run</h3>
+          <div class="stat-grid">
+            <div class="stat-item">
+              <span class="stat-value" id="statProcessed">0</span>
+              <span class="stat-label">Processed</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="statCategorized">0</span>
+              <span class="stat-label">Labeled</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="statSkipped">0</span>
+              <span class="stat-label">Skipped</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-value" id="statFailed">0</span>
+              <span class="stat-label">Failed</span>
+            </div>
+          </div>
+          <div id="categoryBreakdown" class="category-breakdown"></div>
+        </div>
+
+        <!-- Log preview -->
+        <details class="log-details" open>
+          <summary>Activity Log</summary>
+          <div id="logArea" class="log-area"></div>
+        </details>
+      </section>
+
+      <!-- Settings Section -->
+      <section id="settingsSection" class="section hidden">
+        <!-- Classification -->
+        <div class="settings-group">
+          <h3>Classification</h3>
+          
+          <div class="field">
+            <label for="aiProvider">Method</label>
+            <select id="aiProvider">
+              <option value="local">Local ML (Free)</option>
+              <option value="groq">Groq Cloud AI</option>
+              <option value="gemini">Google Gemini</option>
+              <option value="openai">OpenAI</option>
+            </select>
+          </div>
+
+          <div id="apiKeySection" class="field hidden">
+            <label for="aiApiKey">API Key</label>
+            <input type="password" id="aiApiKey" placeholder="Enter API key..." />
+          </div>
+
+          <div class="field">
+            <label for="useAiClassification">
+              <input type="checkbox" id="useAiClassification" />
+              Enable Classification
+            </label>
+          </div>
+        </div>
+
+        <!-- Email Processing -->
+        <div class="settings-group">
+          <h3>Email Processing</h3>
+          
+          <div class="field">
+            <label for="maxEmailsToProcess">Max Emails per Run</label>
+            <input type="number" id="maxEmailsToProcess" min="1" max="500" step="5" />
+          </div>
+
+          <div class="field">
+            <label for="processOnlyUnread">
+              <input type="checkbox" id="processOnlyUnread" />
+              Process Only Unread
+            </label>
+          </div>
+
+          <div class="field">
+            <label for="keepInInbox">
+              <input type="checkbox" id="keepInInbox" />
+              Keep in Inbox After Labeling
+            </label>
+          </div>
+        </div>
+
+        <!-- Auto-Organize -->
+        <div class="settings-group">
+          <h3>Auto-Organize</h3>
+          
+          <div class="field">
+            <label for="autoOrganizeEnabled">
+              <input type="checkbox" id="autoOrganizeEnabled" />
+              Enable Auto-Organize
+            </label>
+          </div>
+
+          <div class="field">
+            <label for="autoOrganizeIntervalMinutes">Interval (minutes)</label>
+            <input type="number" id="autoOrganizeIntervalMinutes" min="5" max="1440" step="5" />
+          </div>
+        </div>
+
+        <!-- Rate Limiting -->
+        <div class="settings-group">
+          <h3>Rate Limiting</h3>
+          
+          <div class="field">
+            <label for="batchSize">Batch Size</label>
+            <input type="number" id="batchSize" min="1" max="100" />
+          </div>
+
+          <div class="field">
+            <label for="delayBetweenBatchesMs">Delay Between Batches (ms)</label>
+            <input type="number" id="delayBetweenBatchesMs" min="0" max="10000" step="100" />
+          </div>
+        </div>
+
+        <!-- Learned Patterns -->
+        <div class="settings-group">
+          <h3>Learned Patterns</h3>
+          <p class="muted">Patterns learned from your corrections.</p>
+          
+          <div id="learnedStats" class="info-text">
+            <span id="learnedStatsContent">Loading...</span>
+          </div>
+          
+          <button id="btnClearLearned" class="btn btn-sm btn-outline">
+            Clear Learned Patterns
+          </button>
+        </div>
+
+        <!-- Actions -->
+        <div class="settings-actions">
+          <button id="btnSaveSettings" class="btn btn-primary btn-block">Save Settings</button>
+          <button id="btnResetSettings" class="btn btn-outline btn-block">Reset to Defaults</button>
+          <span id="saveStatus" class="save-status hidden">Saved</span>
+        </div>
+      </section>
+    </div>
+
+    <script src="sidepanel.js" type="module"></script>
+  </body>
+</html>
+
+    <script src="sidepanel.js" type="module"></script>
+  </body>
+</html>

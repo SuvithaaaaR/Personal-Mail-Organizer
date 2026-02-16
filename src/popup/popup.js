@@ -29,6 +29,7 @@ const categoryBreakdown = document.getElementById("categoryBreakdown");
 
 const logArea = document.getElementById("logArea");
 const btnOptions = document.getElementById("btnOptions");
+const btnPopout = document.getElementById("btnPopout");
 
 // ── Helpers ───────────────────────────────────────────────
 function setStatus(text, className = "") {
@@ -197,6 +198,43 @@ btnOptions.addEventListener("click", (e) => {
   e.preventDefault();
   chrome.runtime.openOptionsPage();
 });
+
+// ── Open Side Panel ──────────────────────────────────────
+const btnSidePanel = document.getElementById("btnSidePanel");
+if (btnSidePanel) {
+  btnSidePanel.addEventListener("click", async (e) => {
+    e.preventDefault();
+    try {
+      // Get current window
+      const [tab] = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      if (tab && chrome.sidePanel) {
+        await chrome.sidePanel.open({ windowId: tab.windowId });
+        window.close(); // Close the popup
+      }
+    } catch (err) {
+      console.log("Side panel not available:", err.message);
+    }
+  });
+}
+
+// ── Pop out to separate window ───────────────────────────
+if (btnPopout) {
+  btnPopout.addEventListener("click", (e) => {
+    e.preventDefault();
+    const popupUrl = chrome.runtime.getURL("src/popup/popup.html");
+    chrome.windows.create({
+      url: popupUrl,
+      type: "popup",
+      width: 400,
+      height: 600,
+      focused: true,
+    });
+    window.close(); // Close the original popup
+  });
+}
 
 // ── Listen for progress updates from background ──────────
 chrome.runtime.onMessage.addListener((msg) => {

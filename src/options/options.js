@@ -40,6 +40,13 @@ const autoLabelValue = document.getElementById("autoLabelValue");
 const keywordsEditor = document.getElementById("keywordsEditor");
 const keywordsError = document.getElementById("keywordsError");
 
+// Learned patterns elements
+const learnedStatsContent = document.getElementById("learnedStatsContent");
+const learnedDomains = document.getElementById("learnedDomains");
+const learnedSenders = document.getElementById("learnedSenders");
+const learnedPhrases = document.getElementById("learnedPhrases");
+const btnClearLearned = document.getElementById("btnClearLearned");
+
 const btnSave = document.getElementById("btnSave");
 const btnReset = document.getElementById("btnReset");
 const saveStatus = document.getElementById("saveStatus");
@@ -94,9 +101,84 @@ function updateProviderHelp() {
 async function updateLocalMLStats() {
   try {
     const stats = await getClassifierStats();
-    statsContent.textContent = `${stats.totalCategories} categories, ${stats.totalKeywords} keywords, ${stats.learnedDomains} learned domains`;
+    statsContent.textContent = `${stats.totalCategories} categories, ${stats.domainMappings} domains, ${stats.emailPatterns} patterns`;
+
+    // Also update learned stats
+    const learnedCount =
+      (stats.learnedDomains || 0) +
+      (stats.learnedSenderNames || 0) +
+      (stats.learnedPhrases || 0);
+    if (learnedStatsContent) {
+      learnedStatsContent.textContent = `${stats.learnedDomains || 0} domains, ${stats.learnedSenderNames || 0} senders, ${stats.learnedPhrases || 0} phrases`;
+    }
   } catch (e) {
     statsContent.textContent = "Stats unavailable";
+  }
+}
+
+async function loadLearnedPatterns() {
+  try {
+    const result = await chrome.runtime.sendMessage({
+      action: "getLearnedPatterns",
+    });
+
+    if (learnedDomains) {
+      const domains = result.learnedDomains || {};
+      if (Object.keys(domains).length > 0) {
+        learnedDomains.textContent = Object.entries(domains)
+          .map(([k, v]) => `${k} → ${v}`)
+          .join("\n");
+      } else {
+        learnedDomains.textContent = "(none)";
+      }
+    }
+
+    if (learnedSenders) {
+      const senders = result.learnedSenderNames || {};
+      if (Object.keys(senders).length > 0) {
+        learnedSenders.textContent = Object.entries(senders)
+          .map(([k, v]) => `${k} → ${v}`)
+          .join("\n");
+      } else {
+        learnedSenders.textContent = "(none)";
+      }
+    }
+
+    if (learnedPhrases) {
+      const phrases = result.learnedSubjectPhrases || {};
+      if (Object.keys(phrases).length > 0) {
+        learnedPhrases.textContent = Object.entries(phrases)
+          .map(([cat, arr]) => `${cat}: ${arr.join(", ")}`)
+          .join("\n");
+      } else {
+        learnedPhrases.textContent = "(none)";
+      }
+    }
+  } catch (e) {
+    console.error("Failed to load learned patterns:", e);
+  }
+}
+
+async function clearAllLearnedPatterns() {
+  if (
+    !confirm(
+      "Clear all learned patterns? The classifier will forget all corrections.",
+    )
+  )
+    return;
+
+  try {
+    await chrome.runtime.sendMessage({ action: "clearLearnedPatterns" });
+    await loadLearnedPatterns();
+    await updateLocalMLStats();
+    saveStatus.textContent = "🗑️ Cleared!";
+    saveStatus.classList.remove("hidden");
+    setTimeout(() => {
+      saveStatus.textContent = "✅ Saved!";
+      saveStatus.classList.add("hidden");
+    }, 2000);
+  } catch (e) {
+    console.error("Failed to clear learned patterns:", e);
   }
 }
 
@@ -199,6 +281,10 @@ async function resetAll() {
 btnSave.addEventListener("click", saveAll);
 btnReset.addEventListener("click", resetAll);
 
+if (btnClearLearned) {
+  btnClearLearned.addEventListener("click", clearAllLearnedPatterns);
+}
+
 fields.aiProvider.addEventListener("change", updateProviderHelp);
 
 fields.aiConfidenceThreshold.addEventListener("input", () => {
@@ -215,3 +301,4 @@ fields.minConfidenceForAutoLabel.addEventListener("input", () => {
 
 // ── Init ──────────────────────────────────────────────────
 loadAll();
+loadLearnedPatterns();

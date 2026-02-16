@@ -26,6 +26,12 @@ import {
   setExistingLabels,
   getRateLimitDelay,
 } from "./classifier.js";
+import {
+  learnFromCorrection,
+  getLearnedPatterns,
+  clearLearnedPatterns,
+  getClassifierStats,
+} from "./localClassifier.js";
 
 // Sleep helper for rate limiting
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -56,6 +62,14 @@ async function handleMessage(msg) {
       return await setAutoOrganize(msg.enabled);
     case "restoreToInbox":
       return await restoreToInbox();
+    case "trainCorrection":
+      return await learnFromCorrection(msg.emailData, msg.correctCategory);
+    case "getLearnedPatterns":
+      return await getLearnedPatterns();
+    case "clearLearnedPatterns":
+      return await clearLearnedPatterns();
+    case "getClassifierStats":
+      return await getClassifierStats();
     default:
       return { error: "Unknown action" };
   }
@@ -191,6 +205,11 @@ chrome.runtime.onInstalled.addListener(async () => {
   const config = await loadConfig();
   if (config.autoOrganizeEnabled) {
     await setAutoOrganize(true);
+  }
+
+  // Enable side panel to open automatically on extension icon click
+  if (chrome.sidePanel) {
+    chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
   }
 });
 

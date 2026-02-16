@@ -184,6 +184,40 @@
         <div id="keywordsError" class="error-text hidden"></div>
       </section>
 
+      <!-- Learned Patterns Section -->
+      <section class="card">
+        <h2>🧠 Learned Patterns</h2>
+        <p class="muted">
+          The classifier learns from your corrections. Learned patterns have
+          highest priority.
+        </p>
+
+        <div id="learnedStats" class="info-box">
+          <strong>Learning Stats:</strong>
+          <span id="learnedStatsContent">Loading...</span>
+        </div>
+
+        <details class="learned-details">
+          <summary>View Learned Patterns</summary>
+          <div id="learnedPatternsArea">
+            <h4>Domains:</h4>
+            <pre id="learnedDomains">Loading...</pre>
+            <h4>Sender Names:</h4>
+            <pre id="learnedSenders">Loading...</pre>
+            <h4>Subject Phrases:</h4>
+            <pre id="learnedPhrases">Loading...</pre>
+          </div>
+        </details>
+
+        <button
+          id="btnClearLearned"
+          class="btn btn-outline btn-sm"
+          style="margin-top: 10px"
+        >
+          🗑️ Clear All Learned Patterns
+        </button>
+      </section>
+
       <!-- Actions -->
       <div class="actions">
         <button id="btnSave" class="btn btn-primary">💾 Save Settings</button>

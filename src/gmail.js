@@ -63,7 +63,12 @@ async function gmailFetch(token, path, options = {}) {
     throw new Error(`Gmail API ${res.status}: ${body}`);
   }
 
-  return res.json();
+  // Handle empty responses (e.g., batchModify returns 204 No Content)
+  const text = await res.text();
+  if (!text) {
+    return null;
+  }
+  return JSON.parse(text);
 }
 
 // ── Labels ───────────────────────────────────────────────

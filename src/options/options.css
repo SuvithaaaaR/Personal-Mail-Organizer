@@ -203,3 +203,58 @@ h1 {
   margin-bottom: 4px;
   color: #047857;
 }
+
+/* ========== Learned Patterns ========== */
+.learned-details {
+  margin-top: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.learned-details summary {
+  padding: 10px 14px;
+  background: #f9fafb;
+  cursor: pointer;
+  font-weight: 500;
+  color: #374151;
+}
+
+.learned-details summary:hover {
+  background: #f3f4f6;
+}
+
+#learnedPatternsArea {
+  padding: 14px;
+  background: #fff;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+#learnedPatternsArea h4 {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  margin: 10px 0 6px 0;
+  text-transform: uppercase;
+}
+
+#learnedPatternsArea h4:first-child {
+  margin-top: 0;
+}
+
+#learnedPatternsArea pre {
+  font-family: "Consolas", "Monaco", monospace;
+  font-size: 12px;
+  background: #f9fafb;
+  padding: 8px 10px;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  color: #374151;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
