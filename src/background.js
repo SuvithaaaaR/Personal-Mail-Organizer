@@ -18,6 +18,8 @@ import {
   getOrCreateLabel,
   modifyMessageLabels,
   listLabels,
+  searchMessages,
+  batchModifyLabels,
 } from "./gmail.js";
 import {
   classifyEmail,
@@ -52,6 +54,8 @@ async function handleMessage(msg) {
       return await organizeInbox();
     case "setAutoOrganize":
       return await setAutoOrganize(msg.enabled);
+    case "restoreToInbox":
+      return await restoreToInbox();
     default:
       return { error: "Unknown action" };
   }
@@ -92,6 +96,64 @@ async function signOut() {
     cachedToken = null;
   }
   return { success: true };
+}
+
+// ── Restore to Inbox ──────────────────────────────────────
+
+async function restoreToInbox() {
+  try {
+    if (!cachedToken) {
+      cachedToken = await getAuthToken(false);
+    }
+    const token = cachedToken;
+
+    broadcast({ type: "log", text: "Searching for emails not in inbox..." });
+
+    // Find all emails that have labels but are not in inbox
+    // This query finds emails that are not in inbox, sent, drafts, trash, or spam
+    const query = "-in:inbox -in:sent -in:draft -in:trash -in:spam";
+    const messages = await searchMessages(token, query, 500);
+
+    if (messages.length === 0) {
+      broadcast({
+        type: "log",
+        text: "No emails found to restore.",
+        level: "success",
+      });
+      return { success: true, restored: 0 };
+    }
+
+    broadcast({
+      type: "log",
+      text: `Found ${messages.length} emails to restore...`,
+    });
+
+    // Get the INBOX label ID
+    const labels = await listLabels(token);
+    const inboxLabel = labels.find(
+      (l) => l.id === "INBOX" || l.name === "INBOX",
+    );
+    const inboxId = inboxLabel ? inboxLabel.id : "INBOX";
+
+    // Batch add INBOX label to all messages
+    const messageIds = messages.map((m) => m.id);
+    await batchModifyLabels(token, messageIds, {
+      addLabelIds: [inboxId],
+      removeLabelIds: [],
+    });
+
+    broadcast({
+      type: "log",
+      text: `✅ Restored ${messages.length} emails to inbox!`,
+      level: "success",
+    });
+
+    return { success: true, restored: messages.length };
+  } catch (err) {
+    console.error("Restore failed:", err);
+    broadcast({ type: "log", text: `Error: ${err.message}`, level: "error" });
+    return { success: false, error: err.message };
+  }
 }
 
 // ── Auto-organize alarm ──────────────────────────────────

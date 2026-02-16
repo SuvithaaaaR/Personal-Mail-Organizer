@@ -12,23 +12,29 @@
 
       <!-- AI Provider Section -->
       <section class="card">
-        <h2>🤖 AI Configuration</h2>
+        <h2>🤖 Classification Engine</h2>
 
         <div class="field">
-          <label for="aiProvider">AI Provider</label>
+          <label for="aiProvider">Classification Method</label>
           <select id="aiProvider">
-            <option value="groq">Groq (FREE - 30 req/min) ⭐</option>
+            <option value="local">Local ML (FREE - No API Key!) ⭐</option>
+            <option value="groq">Groq Cloud AI (FREE - 30 req/min)</option>
             <option value="gemini">Google Gemini (FREE - 15 req/min)</option>
             <option value="openai">OpenAI (Paid)</option>
           </select>
-          <small
-            >Groq recommended - faster processing, higher rate limits!</small
-          >
+          <small id="providerDescription">
+            Local ML runs entirely on your device - 100% private, no data sent
+            anywhere!
+          </small>
         </div>
 
-        <div class="field">
-          <label for="aiApiKey">API Key</label>
-          <input type="password" id="aiApiKey" placeholder="Your API key..." />
+        <div id="apiKeySection" class="field" style="display: none">
+          <label for="aiApiKey">API Key (Optional)</label>
+          <input
+            type="password"
+            id="aiApiKey"
+            placeholder="Only needed for Cloud AI..."
+          />
           <small id="apiKeyHelp">
             Get FREE key at
             <a href="https://console.groq.com/keys" target="_blank"
@@ -37,7 +43,7 @@
           </small>
         </div>
 
-        <div class="field">
+        <div id="modelSection" class="field" style="display: none">
           <label for="aiModel">Model</label>
           <select id="aiModel">
             <option value="llama-3.1-8b-instant">
@@ -53,8 +59,13 @@
         </div>
 
         <div class="field row">
-          <label for="useAiClassification">Enable AI Classification</label>
+          <label for="useAiClassification">Enable Classification</label>
           <input type="checkbox" id="useAiClassification" />
+        </div>
+
+        <div id="localMLStats" class="info-box">
+          <strong>Local ML Stats:</strong>
+          <span id="statsContent">Loading...</span>
         </div>
       </section>
 

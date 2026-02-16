@@ -1,11 +1,12 @@
 /**
- * AI Email Classifier – Smart AI-powered email categorization
- * Supports: Google Gemini (FREE), OpenAI, Groq
+ * Email Classifier – Smart email categorization
+ * Supports: Local ML (FREE, no API), Google Gemini, OpenAI, Groq
  */
 
 import { loadConfig } from "./config.js";
+import { classifyEmailLocally } from "./localClassifier.js";
 
-// API Endpoints
+// API Endpoints (for optional cloud AI)
 const GEMINI_API_BASE =
   "https://generativelanguage.googleapis.com/v1beta/models";
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
@@ -46,6 +47,7 @@ async function fetchWithRetry(url, options, maxRetries = 3) {
 
 /** Get rate limit delay for provider */
 export function getRateLimitDelay(provider) {
+  if (provider === "local") return 50; // Local ML is fast!
   return RATE_LIMIT_DELAYS[provider] || 2000;
 }
 
@@ -70,41 +72,39 @@ export function setExistingLabels(labels) {
 }
 
 /**
- * Classify an email using intelligent AI analysis.
+ * Classify an email using local ML or cloud AI.
  * @param {object} emailData - { subject, body, sender, hasAttachments, snippet }
  * @returns {Promise<{ category: string|null, confidence: number, reasoning: string, alternativeCategories: string[] }>}
  */
 export async function classifyEmail(emailData) {
   const config = await loadConfig();
-
-  if (!config.aiApiKey) {
-    return {
-      category: null,
-      confidence: 0,
-      reasoning:
-        "API key not configured. Go to Settings to add your Gemini/OpenAI key.",
-      alternativeCategories: [],
-    };
-  }
+  const provider = config.aiProvider || "local";
 
   try {
-    const provider = config.aiProvider || "gemini";
+    // Local ML classification (default, no API key needed)
+    if (provider === "local") {
+      return await classifyEmailLocally(emailData);
+    }
+
+    // Cloud AI requires API key
+    if (!config.aiApiKey) {
+      console.log("No API key, falling back to local ML");
+      return await classifyEmailLocally(emailData);
+    }
 
     if (provider === "gemini") {
       return await classifyWithGemini(emailData, config);
     } else if (provider === "groq") {
       return await classifyWithGroq(emailData, config);
-    } else {
+    } else if (provider === "openai") {
       return await classifyWithOpenAI(emailData, config);
+    } else {
+      return await classifyEmailLocally(emailData);
     }
   } catch (err) {
-    console.error("AI classification failed:", err);
-    return {
-      category: null,
-      confidence: 0,
-      reasoning: `Error: ${err.message}`,
-      alternativeCategories: [],
-    };
+    console.error("Classification failed, trying local ML:", err);
+    // Fallback to local ML on any error
+    return await classifyEmailLocally(emailData);
   }
 }
 

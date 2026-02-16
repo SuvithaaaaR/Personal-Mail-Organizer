@@ -186,3 +186,20 @@ h1 {
   color: #059669;
   font-weight: 500;
 }
+
+/* ========== Info Box ========== */
+.info-box {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #065f46;
+  margin-top: 12px;
+}
+
+.info-box strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #047857;
+}

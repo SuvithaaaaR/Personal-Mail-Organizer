@@ -4,6 +4,7 @@
 
 import { DEFAULT_CONFIG, loadConfig, saveConfig } from "../config.js";
 import { DEFAULT_KEYWORDS, loadKeywords, saveKeywords } from "../keywords.js";
+import { getClassifierStats } from "../localClassifier.js";
 
 // ── DOM refs ──────────────────────────────────────────────
 const fields = {
@@ -28,6 +29,11 @@ const fields = {
 };
 
 const apiKeyHelp = document.getElementById("apiKeyHelp");
+const apiKeySection = document.getElementById("apiKeySection");
+const modelSection = document.getElementById("modelSection");
+const providerDescription = document.getElementById("providerDescription");
+const localMLStats = document.getElementById("localMLStats");
+const statsContent = document.getElementById("statsContent");
 const thresholdValue = document.getElementById("thresholdValue");
 const autoLabelValue = document.getElementById("autoLabelValue");
 
@@ -39,17 +45,59 @@ const btnReset = document.getElementById("btnReset");
 const saveStatus = document.getElementById("saveStatus");
 
 // ── Provider help links ───────────────────────────────────
-const providerLinks = {
-  gemini:
-    'Get FREE key at <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a>',
-  groq: 'Get FREE key at <a href="https://console.groq.com/keys" target="_blank">console.groq.com</a>',
-  openai:
-    'Get key at <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a> (Paid)',
+const providerInfo = {
+  local: {
+    description:
+      "Local ML runs entirely on your device - 100% private, no data sent anywhere!",
+    showApiKey: false,
+    showModel: false,
+  },
+  gemini: {
+    description:
+      'Get FREE key at <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a>',
+    showApiKey: true,
+    showModel: true,
+  },
+  groq: {
+    description:
+      'Get FREE key at <a href="https://console.groq.com/keys" target="_blank">console.groq.com</a>',
+    showApiKey: true,
+    showModel: true,
+  },
+  openai: {
+    description:
+      'Get key at <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a> (Paid)',
+    showApiKey: true,
+    showModel: true,
+  },
 };
 
 function updateProviderHelp() {
   const provider = fields.aiProvider.value;
-  apiKeyHelp.innerHTML = providerLinks[provider] || "";
+  const info = providerInfo[provider] || providerInfo.local;
+
+  providerDescription.innerHTML = info.description;
+  apiKeySection.style.display = info.showApiKey ? "block" : "none";
+  modelSection.style.display = info.showModel ? "block" : "none";
+  localMLStats.style.display = provider === "local" ? "block" : "none";
+
+  if (info.showApiKey) {
+    apiKeyHelp.innerHTML = info.description;
+  }
+
+  // Update local ML stats if showing
+  if (provider === "local") {
+    updateLocalMLStats();
+  }
+}
+
+async function updateLocalMLStats() {
+  try {
+    const stats = await getClassifierStats();
+    statsContent.textContent = `${stats.totalCategories} categories, ${stats.totalKeywords} keywords, ${stats.learnedDomains} learned domains`;
+  } catch (e) {
+    statsContent.textContent = "Stats unavailable";
+  }
 }
 
 // ── Load settings ─────────────────────────────────────────
@@ -58,7 +106,7 @@ async function loadAll() {
   const keywords = await loadKeywords();
 
   // Populate fields
-  fields.aiProvider.value = config.aiProvider || "groq";
+  fields.aiProvider.value = config.aiProvider || "local";
   fields.aiApiKey.value = config.aiApiKey || "";
   fields.aiModel.value = config.aiModel || "llama-3.1-8b-instant";
   fields.useAiClassification.checked = config.useAiClassification;

@@ -79,6 +79,60 @@ export async function listLabels(token) {
 }
 
 /**
+ * Search for messages matching a query.
+ * @param {string} token
+ * @param {string} query - Gmail search query
+ * @param {number} maxResults
+ * @returns {Promise<Array<{id: string}>>}
+ */
+export async function searchMessages(token, query, maxResults = 500) {
+  const messages = [];
+  let pageToken = null;
+
+  while (messages.length < maxResults) {
+    const remaining = maxResults - messages.length;
+    let url = `/messages?q=${encodeURIComponent(query)}&maxResults=${Math.min(100, remaining)}`;
+    if (pageToken) url += `&pageToken=${pageToken}`;
+
+    const data = await gmailFetch(token, url);
+    if (data.messages) messages.push(...data.messages);
+    pageToken = data.nextPageToken;
+    if (!pageToken) break;
+  }
+
+  return messages.slice(0, maxResults);
+}
+
+/**
+ * Batch modify labels on multiple messages.
+ * @param {string} token
+ * @param {string[]} messageIds
+ * @param {object} labelMods
+ */
+export async function batchModifyLabels(
+  token,
+  messageIds,
+  { addLabelIds = [], removeLabelIds = [] },
+) {
+  // Gmail API batch limit is 1000 messages
+  const batches = [];
+  for (let i = 0; i < messageIds.length; i += 1000) {
+    batches.push(messageIds.slice(i, i + 1000));
+  }
+
+  for (const batch of batches) {
+    await gmailFetch(token, `/messages/batchModify`, {
+      method: "POST",
+      body: JSON.stringify({
+        ids: batch,
+        addLabelIds,
+        removeLabelIds,
+      }),
+    });
+  }
+}
+
+/**
  * Get or create a label by name. Returns the label ID.
  * @param {string} token
  * @param {string} labelName

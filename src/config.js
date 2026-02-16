@@ -5,9 +5,9 @@
 
 export const DEFAULT_CONFIG = {
   // AI Provider Settings
-  aiProvider: "groq", // Options: groq (FREE, best), gemini (FREE), openai (paid)
+  aiProvider: "local", // Options: local (FREE, no API), groq (FREE), gemini (FREE), openai (paid)
   aiApiKey: "",
-  aiModel: "llama-3.1-8b-instant", // or gemini-2.0-flash, gpt-4o-mini
+  aiModel: "", // Only needed for cloud AI
 
   // Classification Settings
   useAiClassification: true,
@@ -17,7 +17,7 @@ export const DEFAULT_CONFIG = {
   // Email Processing Settings
   maxEmailsToProcess: 30,
   processOnlyUnread: false,
-  keepInInbox: false,
+  keepInInbox: true,
 
   // Auto-organize
   autoOrganizeEnabled: false,

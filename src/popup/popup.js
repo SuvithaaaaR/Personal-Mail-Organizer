@@ -12,6 +12,7 @@ const btnSignIn = document.getElementById("btnSignIn");
 const btnSignOut = document.getElementById("btnSignOut");
 const userEmail = document.getElementById("userEmail");
 const btnOrganize = document.getElementById("btnOrganize");
+const btnRestore = document.getElementById("btnRestore");
 const autoOrganizeToggle = document.getElementById("autoOrganizeToggle");
 
 const statusBadge = document.getElementById("statusBadge");
@@ -146,6 +147,40 @@ btnOrganize.addEventListener("click", async () => {
   } finally {
     btnOrganize.disabled = false;
     progressArea.classList.add("hidden");
+  }
+});
+
+// ── Restore to Inbox ─────────────────────────────────────
+btnRestore.addEventListener("click", async () => {
+  if (
+    !confirm(
+      "This will move ALL emails (not in inbox) back to your inbox. Continue?",
+    )
+  ) {
+    return;
+  }
+
+  btnRestore.disabled = true;
+  btnRestore.textContent = "Restoring...";
+  setStatus("Restoring", "running");
+  addLog("Starting restore to inbox...");
+
+  try {
+    const result = await sendMessage({ action: "restoreToInbox" });
+
+    if (result.success) {
+      setStatus("Done", "done");
+      addLog(`✅ Restored ${result.restored} emails to inbox!`, "success");
+    } else {
+      setStatus("Error", "error");
+      addLog("Restore failed: " + (result.error || "Unknown error"), "error");
+    }
+  } catch (err) {
+    setStatus("Error", "error");
+    addLog("Error: " + err.message, "error");
+  } finally {
+    btnRestore.disabled = false;
+    btnRestore.textContent = "📥 Restore All to Inbox";
   }
 });
 
