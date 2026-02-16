@@ -22,6 +22,7 @@ const autoOrganizeToggle = document.getElementById("autoOrganizeToggle");
 const progressArea = document.getElementById("progressArea");
 const progressFill = document.getElementById("progressFill");
 const progressText = document.getElementById("progressText");
+const btnCancel = document.getElementById("btnCancel");
 
 const statsArea = document.getElementById("statsArea");
 const statProcessed = document.getElementById("statProcessed");
@@ -197,6 +198,22 @@ btnOrganize.addEventListener("click", async () => {
     btnOrganize.disabled = false;
     btnOrganize.style.opacity = "1";
     progressArea.classList.add("hidden");
+  }
+});
+
+// ── Cancel Organization ─────────────────────────────────
+btnCancel.addEventListener("click", async () => {
+  btnCancel.disabled = true;
+  btnCancel.textContent = "Cancelling...";
+  addLog("Cancelling organization...");
+
+  try {
+    await sendMessage({ action: "cancelOrganize" });
+  } catch (err) {
+    addLog("Error cancelling: " + err.message, "error");
+  } finally {
+    btnCancel.disabled = false;
+    btnCancel.textContent = "Cancel";
   }
 });
 

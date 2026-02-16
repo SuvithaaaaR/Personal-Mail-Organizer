@@ -39,6 +39,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // ── Cached state ─────────────────────────────────────────
 let cachedToken = null;
 let isRunning = false;
+let cancelRequested = false;
 
 // ── Message router ───────────────────────────────────────
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
@@ -58,6 +59,9 @@ async function handleMessage(msg) {
       return await signOut();
     case "organizeInbox":
       return await organizeInbox();
+    case "cancelOrganize":
+      cancelRequested = true;
+      return { success: true };
     case "setAutoOrganize":
       return await setAutoOrganize(msg.enabled);
     case "restoreToInbox":
@@ -218,6 +222,7 @@ chrome.runtime.onInstalled.addListener(async () => {
 async function organizeInbox() {
   if (isRunning) return { success: false, error: "Already running" };
   isRunning = true;
+  cancelRequested = false;
 
   const stats = {
     processed: 0,
@@ -269,6 +274,16 @@ async function organizeInbox() {
     const labelCache = {};
 
     for (let i = 0; i < total; i++) {
+      // Check if cancellation was requested
+      if (cancelRequested) {
+        broadcast({
+          type: "log",
+          text: `Cancelled by user after ${stats.processed} emails.`,
+          level: "warn",
+        });
+        break;
+      }
+
       try {
         // Progress
         broadcast({ type: "progress", current: i + 1, total });
@@ -349,23 +364,30 @@ async function organizeInbox() {
     await chrome.storage.local.set({ lastRunStats: stats });
 
     // Send notification
+    const wasCancelled = cancelRequested;
     chrome.notifications.create("organizeComplete", {
       type: "basic",
       iconUrl: chrome.runtime.getURL("icons/icon128.png"),
       title: "Mail Organizer",
-      message: `Done! ${stats.categorized} of ${stats.processed} emails categorized.`,
+      message: wasCancelled
+        ? `Stopped. ${stats.categorized} of ${stats.processed} emails categorized.`
+        : `Done! ${stats.categorized} of ${stats.processed} emails categorized.`,
     });
 
     broadcast({
       type: "log",
-      text: `🎉 Complete! ${stats.categorized} categorized, ${stats.skipped} skipped, ${stats.failed} failed.`,
+      text: wasCancelled
+        ? `Stopped. ${stats.categorized} categorized, ${stats.skipped} skipped, ${stats.failed} failed.`
+        : `Complete! ${stats.categorized} categorized, ${stats.skipped} skipped, ${stats.failed} failed.`,
       level: "success",
     });
 
     isRunning = false;
+    cancelRequested = false;
     return { success: true, stats };
   } catch (err) {
     isRunning = false;
+    cancelRequested = false;
     console.error("organizeInbox error:", err);
     broadcast({
       type: "log",

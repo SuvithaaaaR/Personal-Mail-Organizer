@@ -255,6 +255,17 @@ body {
   transition: width 0.3s ease;
 }
 
+.btn-cancel {
+  margin-top: 10px;
+  width: 100%;
+  color: #dc2626;
+  border-color: #dc2626;
+}
+
+.btn-cancel:hover {
+  background: #fef2f2;
+}
+
 /* Stats */
 .stats {
   margin-bottom: 16px;
